@@ -1,0 +1,26 @@
+{
+    "name": "t-secure-express",
+    "version": "0.0.2",
+    "license": "MIT",
+    "main": "index.js",
+    "dependencies": {
+        "trsa": "^1.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^12.6.2",
+        "chai": "^4.2.0",
+        "expect": "^24.8.0",
+        "express": "^4.17.1",
+        "ts-loader": "^6.0.4",
+        "ts-node": "^8.3.0",
+        "typescript": "^3.5.3",
+        "webpack": "^4.35.3",
+        "webpack-cli": "^3.3.5"
+    },
+    "scripts": {
+        "buildWebClient": "webpack --entry=./client/httpClient.ts  --mode=production -o ./client/webClient.js --output-library=secureClient  --module-bind ts=ts-loader",
+        "buildWebClientWatch": "webpack --entry=./client/httpClient.ts  --mode=development -o ./client/webClient.js --output-library=secureClient  --module-bind ts=ts-loader -w",
+        "buildClient": "tsc ./client/httpClient -d",
+        "buildClientWatch": "tsc ./client/httpClient -d -w"
+    }
+}
