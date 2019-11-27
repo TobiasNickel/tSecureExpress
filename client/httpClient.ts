@@ -3,22 +3,35 @@ import * as trsa from 'trsa';
 
 export const rsa = trsa;
 
+export interface IRsaFetchParams {
+    keyPair?: trsa.IKeyPair;
+    serverUrl?: string;
+    serverKey: string;
+}
+
 export class RsaFetch{
     public keyPair: trsa.IKeyPair;
     public serverUrl: string;
     public serverKey: string;
 
-    constructor(keyPair: trsa.IKeyPair, serverUrl: string, serverKey: string){
+    constructor({keyPair, serverUrl, serverKey}: IRsaFetchParams){
         this.keyPair = keyPair;
-        this.serverUrl = serverUrl;
-        this.serverKey = serverKey
+        if (serverUrl) {
+            this.serverUrl = serverUrl;
+        } else {
+            if(typeof window == 'object'){
+                this.serverUrl = window.location.origin + '/encrypted'
+            } else {
+                throw new Error('missing serverUrl');
+            }
+        }
+        this.serverKey = serverKey;
     }
 
     async fetch(request){
         const requestData = JSON.stringify({
             senderKey: this.keyPair.publicKey,
             method: 'GET',
-            mode: 'cors',
             ...(typeof request==='string'?{url:request}:request)
         });
 
@@ -26,34 +39,32 @@ export class RsaFetch{
         const signature = rsa.sign(requestData, this.keyPair.privateKey)
 
         var r = await fetch(this.serverUrl,{
-            method:'POST',
+            body: bytesFromHex(encrypted),
             headers: {...request.headers||{}, signature },
-            body: bytesFromHex(encrypted)
+            method:'POST',
+            mode: 'cors',
         });
-        let respone = undefined;
-        if(r.headers.has('Encrypted')){
-            const message = hexFromArrayBuffer(await r.arrayBuffer());
+        let response = undefined;
+        const message = hexFromArrayBuffer(await r.arrayBuffer());
+        try{
             const decryptedMessage = rsa.decrypt(message, this.keyPair.privateKey);
-
             try {
-                respone = JSON.parse(decryptedMessage);
+                response = JSON.parse(decryptedMessage);
             } catch {
-                respone = decryptedMessage;
+                response = hexToString(message);
             }
-        } else{
-            const message = await r.text();
-
+        } catch {
             try {
-                respone = JSON.parse(message);
+                response = JSON.parse(message);
             } catch {
-                respone = message;
+                response = message;
             }
         }
 
         if(r.ok){
-            return respone;
+            return response;
         }else{
-            throw new Error(respone);
+            throw new Error(response);
         }
     }
 }
@@ -79,7 +90,20 @@ function uIntArrayToArray(arr: Uint8Array):Array<number>{
     return out;
 }
 
+function hexToString(hexx: string) {
+    if(hexx.length%2){
+        throw new Error('invalid hex');
+    }
+    var hex = hexx.toString();
+    var str = '';
+    for (var i = 0; i < hex.length; i += 2){
+        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    }
+    return str;
+}
+
 export const utils = {
     bytesFromHex,
-    hexFromArrayBuffer
+    hexFromArrayBuffer,
+    hexToString
 }

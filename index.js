@@ -21,7 +21,7 @@ const requestSchema = struct({
 module.exports.encryptedMiddleware = (keys)=>(req, res, next) => {
   res.respondSave = (data) => {
     if (req.senderKey) {
-      res.append('Encrypted', 'true')
+      res.append('Encrypted', 'true');
       res.send(Buffer.from(rsa.encrypt(JSON.stringify(data), req.senderKey), 'hex'));
     } else {
       res.json(data);
@@ -107,6 +107,7 @@ module.exports.saveResponseMiddleware = (req,res,next) => {
    */
   function sendResponse(){
     if (req.senderKey) {
+      res.append('Encrypted', 'true');
       res.send(res.responseData);
     } else {
       res.json(res.responseData);

@@ -18,7 +18,11 @@ app.get('/hello', (req,res)=>{
 });
 
 async function test() {
-    const client = new sdk.RsaFetch(clientKeys,'http://localhost:1234/encrypted',serverKeys.publicKey);
+    const client = new sdk.RsaFetch({
+        keyPair: clientKeys,
+        serverUrl:'http://localhost:1234/encrypted',
+        serverKey: serverKeys.publicKey
+    });
     const message = await client.fetch('/hello');
     expect(message.hello).toEqual('world');
 }
@@ -30,3 +34,4 @@ test().then(()=>{
     console.log(err);
     process.exit(1);
 });
+

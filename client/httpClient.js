@@ -50,57 +50,66 @@ var fetch = require("node-fetch");
 var trsa = require("trsa");
 exports.rsa = trsa;
 var RsaFetch = /** @class */ (function () {
-    function RsaFetch(keyPair, serverUrl, serverKey) {
+    function RsaFetch(_a) {
+        var keyPair = _a.keyPair, serverUrl = _a.serverUrl, serverKey = _a.serverKey;
         this.keyPair = keyPair;
-        this.serverUrl = serverUrl;
+        if (serverUrl) {
+            this.serverUrl = serverUrl;
+        }
+        else {
+            if (typeof window == 'object') {
+                this.serverUrl = window.location.origin + '/encrypted';
+            }
+            else {
+                throw new Error('missing serverUrl');
+            }
+        }
         this.serverKey = serverKey;
     }
     RsaFetch.prototype.fetch = function (request) {
         return __awaiter(this, void 0, void 0, function () {
-            var requestData, encrypted, signature, r, respone, message, _a, decryptedMessage, message;
+            var requestData, encrypted, signature, r, response, message, _a, decryptedMessage;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        requestData = JSON.stringify(__assign({ senderKey: this.keyPair.publicKey, method: 'GET', mode: 'cors' }, (typeof request === 'string' ? { url: request } : request)));
+                        requestData = JSON.stringify(__assign({ senderKey: this.keyPair.publicKey, method: 'GET' }, (typeof request === 'string' ? { url: request } : request)));
                         encrypted = exports.rsa.encrypt(requestData, this.serverKey);
                         signature = exports.rsa.sign(requestData, this.keyPair.privateKey);
                         return [4 /*yield*/, fetch(this.serverUrl, {
-                                method: 'POST',
+                                body: bytesFromHex(encrypted),
                                 headers: __assign({}, request.headers || {}, { signature: signature }),
-                                body: bytesFromHex(encrypted)
+                                method: 'POST',
+                                mode: 'cors'
                             })];
                     case 1:
                         r = _b.sent();
-                        respone = undefined;
-                        if (!r.headers.has('Encrypted')) return [3 /*break*/, 3];
+                        response = undefined;
                         _a = hexFromArrayBuffer;
                         return [4 /*yield*/, r.arrayBuffer()];
                     case 2:
                         message = _a.apply(void 0, [_b.sent()]);
-                        decryptedMessage = exports.rsa.decrypt(message, this.keyPair.privateKey);
                         try {
-                            respone = JSON.parse(decryptedMessage);
-                        }
-                        catch (_c) {
-                            respone = decryptedMessage;
-                        }
-                        return [3 /*break*/, 5];
-                    case 3: return [4 /*yield*/, r.text()];
-                    case 4:
-                        message = _b.sent();
-                        try {
-                            respone = JSON.parse(message);
+                            decryptedMessage = exports.rsa.decrypt(message, this.keyPair.privateKey);
+                            try {
+                                response = JSON.parse(decryptedMessage);
+                            }
+                            catch (_c) {
+                                response = hexToString(message);
+                            }
                         }
                         catch (_d) {
-                            respone = message;
+                            try {
+                                response = JSON.parse(message);
+                            }
+                            catch (_e) {
+                                response = message;
+                            }
                         }
-                        _b.label = 5;
-                    case 5:
                         if (r.ok) {
-                            return [2 /*return*/, respone];
+                            return [2 /*return*/, response];
                         }
                         else {
-                            throw new Error(respone);
+                            throw new Error(response);
                         }
                         return [2 /*return*/];
                 }
@@ -129,7 +138,19 @@ function uIntArrayToArray(arr) {
     arr.forEach(function (v) { return out.push(v); });
     return out;
 }
+function hexToString(hexx) {
+    if (hexx.length % 2) {
+        throw new Error('invalid hex');
+    }
+    var hex = hexx.toString();
+    var str = '';
+    for (var i = 0; i < hex.length; i += 2) {
+        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    }
+    return str;
+}
 exports.utils = {
     bytesFromHex: bytesFromHex,
-    hexFromArrayBuffer: hexFromArrayBuffer
+    hexFromArrayBuffer: hexFromArrayBuffer,
+    hexToString: hexToString
 };

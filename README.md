@@ -1,19 +1,25 @@
 # tSecureExpress
 express middleware &amp; client for RSA encrypted communication
 
-Two modules in one, mend to work together.
+Two modules in one, meant to work together.
 
-A express middleware, that is able to accept RSA encrypted payloads and change the request to the found context.
-Second, a secure client. that contacts to a server that is using the encrypted middleware.
+A express middleware, that is able to accept RSA encrypted payloads and change the request to the properties found in the body.
+Second, a secure client, that contacts to a server using the encrypted middleware.
 
 # motivation
-The reason for this custom http encryption library is two fold. I wanted to have secure encryption between client and server, without being required to register an SSH certificate.
-Second: In China, and other places, the https protocol get purposefully slow down. Having the encrypted communication transfer over plain http, will stay fast.
+There are three usecases for this custom http encryption library. 
+ 1. I wanted to have secure encryption between client and server, without being required to register an SSH certificate.
+ 2. In China, and other places, the https protocol get purposefully slow down. Having the encrypted communication transfer over plain http, will stay fast.
+ 3. Provide a secure authentication, that not only the application provider can trust, but also the user.
+    - the application provider will be able to prove, that commands are send by a particular user.
+    - the user can be sure, that no action was taken in his name without his consent. (these two properties are very important or blockchain applications.) 
 
 In fact I am on the way, to develop a communication system, that is easy for everyone to setup, participate and use. This module is one step on the way, to allow easy development of RSA encrypted client server communication. It is a perfect fit for PWA and can also be used for communications between servers and other clients.
 
+Using the middlewares, it is also possible to add the encryption module to existing applications and have it work, without starting over.
+
 # how it works
-Under the hood, is the already provided trsa module, for easy key pair creation and cryptography. The server will generate a keyPair for himself, Clients who send encrypted content to the server, have to encrypt there requests using the servers key. The server key can be provided on a public route, or get shared in any other secure way. (to avoid man in the middle attacks).
+Under the hood, is the already provided trsa module, for easy key pair creation and cryptography. The server will generate a keyPair for himself, Clients who send encrypted content to the server using the servers public key. The server key can be provided on a public route, or get shared in any other secure way. (to avoid man in the middle attacks).
 
 The client library, will be configured to the endpoint of the server. The clientside uses the same type of keys. They can even be generated on client side using the trsa module. The client sign the requests to the server. All that will be very easy using the client module.
 
@@ -82,8 +88,9 @@ This two examples should show you something great. Setting url, query, body and 
 # import
 For the serverside, you simply `require('t-secure-express');`, for clients, using webpack, you can use `require('t-secure-express/client/httpClient');`. of course, modern syntax with `import` works the same way.
 
-```
-$lt;script src="https://unpkg.com/t-secure-express@0.0.1/client/webClient.js"$gt;$lt;/script$gt;
+The client SDK is also build 
+```html
+<script src="https://unpkg.com/t-secure-express@0.0.2/client/webClient.js"></script>
 ```
 
 
