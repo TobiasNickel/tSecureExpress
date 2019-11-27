@@ -66,7 +66,7 @@ export async function main(){
      * create a client
      * provide the keyPair with private and public key as first argument
      */
-    const client = new httpClient.RsaFetch(clientKeys,'http://localhost:1234/encrypted',serverKey);
+    const client = new httpClient.RsaFetch({keyPair: clientKeys, url:window.location.origin+'/encrypted', serverKey });
     // simple GET request to the server
     const requestInfo = await client.fetch('/hello');
     console.log(client)
@@ -78,7 +78,7 @@ export async function main(){
         method: 'POST',
         url: '/someEntity',
         headers: {'your-other':'headers'} // note: they do not get encrypted and signed
-        body: {da:'ta'}
+        body: {da: 'ta'}
     });
 }
 ```
@@ -90,7 +90,19 @@ For the serverside, you simply `require('t-secure-express');`, for clients, usin
 
 The client SDK is also build 
 ```html
-<script src="https://unpkg.com/t-secure-express@0.0.2/client/webClient.js"></script>
+<script src="https://unpkg.com/t-secure-express@0.0.9/client/webClient.js"></script>
+<script>
+  const clientKeys = secureClient.rsa.generateKeyPair({bits:512});
+  const client = new httpClient.RsaFetch({keyPair: clientKeys, url:window.location.origin+'/encrypted', serverKey });
+  client.fetch({
+    method: 'POST',
+    url: '/someEntity',
+    headers: {'your-other':'headers'} // note: they do not get encrypted and signed
+    body: {da: 'ta'},
+  });
+
+</script>
 ```
+
 
 
