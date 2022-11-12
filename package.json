@@ -17,7 +17,7 @@
         "ts-node": "^8.5.2",
         "typescript": "^3.7.2",
         "webpack": "^4.41.2",
-        "webpack-cli": "^3.3.10"
+        "webpack-cli": "^3.3.12"
     },
     "scripts": {
         "buildWebClient": "webpack --entry=./client/httpClient.ts  --mode=production -o ./client/webClient.js --output-library=secureClient  --module-bind ts=ts-loader",
